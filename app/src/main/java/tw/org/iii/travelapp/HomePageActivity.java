@@ -48,10 +48,11 @@ public class HomePageActivity extends AppCompatActivity {
     public static String userID = "1";
     private File photoFile, storageDir;
     private Uri photoURI, uriForFile;
-    public static SharedPreferences sp;
-    public static SharedPreferences.Editor editor;
-    public static boolean issignin;
-    public static String memberid;
+    private SharedPreferences sp;
+    private SharedPreferences.Editor editor;
+    private boolean issignin;
+    private String memberid;
+    private String memberemail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,14 +89,15 @@ public class HomePageActivity extends AppCompatActivity {
         pager.setCurrentItem(0);
         //與tablayout連動
         pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
-//        pager.setOffscreenPageLimit(5);
+
         inittablayout();
-//        initActionBar();
-        //螢幕寬高
-//        DisplayMetrics metrics = new DisplayMetrics();
-//        getWindowManager().getDefaultDisplay().getMetrics(metrics);
-//
-//        Log.v("grey","手機寬高 ＝" + metrics.widthPixels+" X "+metrics.heightPixels);
+
+        //更新
+        editor.putBoolean("signin",false);
+        editor.putString("memberid","0");
+        editor.putString("memberemail","xxx");
+        editor.commit();
+
     }
 
     //menu
@@ -155,6 +157,7 @@ public class HomePageActivity extends AppCompatActivity {
         editor = sp.edit();
         issignin = sp.getBoolean("signin",false);
         memberid = sp.getString("memberid","1");
+        memberemail = sp.getString("memberemail","xxx");
     }
 
     private void inittablayout(){

@@ -53,7 +53,9 @@ android:largeHeap="true"
             android:screenOrientation="portrait" />
         <activity
             android:name=".HomePageActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:launchMode="singleTop"
+            >
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
 
@@ -95,7 +97,6 @@ android:largeHeap="true"
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login"
             android:screenOrientation="portrait" />
         <activity
             android:name=".SearchPage"

@@ -1,8 +1,11 @@
 package tw.org.iii.travelapp;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +28,10 @@ import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
+import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -35,6 +42,10 @@ public class LoginActivity extends AppCompatActivity {
     private LoginButton loginButton;
     private CallbackManager callbackManager;
     private RequestQueue queue;
+
+    private SharedPreferences sp;
+    private SharedPreferences.Editor editor;
+    private boolean issign;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +53,12 @@ public class LoginActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
         queue= Volley.newRequestQueue(LoginActivity.this);
+
+        sp = getSharedPreferences("memberdata",MODE_PRIVATE);
+        editor = sp.edit();
+        issign = sp.getBoolean("signin",true);
+        Log.v("grey","logicboolean = "+(issign?true:false));
+
 
         callbackManager = CallbackManager.Factory.create();
 
@@ -67,7 +84,6 @@ public class LoginActivity extends AppCompatActivity {
                 AccessToken accessToken = loginResult.getAccessToken();
                 String user_id = accessToken.getUserId();
                 String token = accessToken.getToken();
-
                 GraphRequest request =
                         GraphRequest.newMeRequest(accessToken, new GraphRequest.GraphJSONObjectCallback() {
                             @Override
@@ -76,8 +92,7 @@ public class LoginActivity extends AppCompatActivity {
                                     String email = object.getString("email");
                                     String birthday = object.getString("birthday");
                                     String name = object.getString("name");
-                                    sighin(email,name,"123","2");
-                                    finish();
+                                    sighin(email,name,"123","fb");
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -114,7 +129,12 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    private void sighin(String mail,String name,String password,String type){
+    @Override
+    public void finish() {
+        super.finish();
+    }
+
+    private void sighin(String mail, String name, String password, String type){
         final String p1=mail;
         final String p2=password;
         final String p3=type;
@@ -124,6 +144,29 @@ public class LoginActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
+                        String res = response.trim();
+                        if (res.equals("erro")){
+                            Log.v("grey","error="+response);
+                        }else{
+                            try {
+                                JSONObject j2 = new JSONObject(res);
+                                String mid = j2.getString("id");
+                                String memail = j2.getString("mail");
+                                Log.v("grey","success");
+                                Log.v("grey","mid = "+mid);
+                                Log.v("grey","memail = "+memail);
+
+                                editor.putBoolean("signin",true);
+                                editor.putString("memberid",mid);
+                                editor.putString("memberemail",memail);
+                                editor.commit();
+                                Log.v("grey","logicbooleanpage = "+(issign?true:false));
+                                signsuccess();
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
                     }
                 }, null){
             @Override
@@ -137,5 +180,19 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
         queue.add(stringRequest);
+    }
+
+    private void signsuccess(){
+        new AlertDialog.Builder(LoginActivity.this)
+                .setTitle("")
+                .setMessage("success")
+                .setPositiveButton("ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Intent intent = new Intent(getApplicationContext(),HomePageActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
+                }).show();
     }
 }

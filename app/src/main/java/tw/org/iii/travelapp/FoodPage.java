@@ -3,6 +3,7 @@ package tw.org.iii.travelapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -43,8 +44,13 @@ public class FoodPage extends ListFragment {
     private MyfoodlistAdapter adapter;
     private Button mesbtn,addbtn;
     private float screenWidth,screenHeight,newHeight;
-    private boolean ismember = false;
     private RequestQueue queue;
+
+    private SharedPreferences sp;
+    private SharedPreferences.Editor editor;
+    private boolean issignin;
+    private String memberid;
+    private String memberemail;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -52,6 +58,12 @@ public class FoodPage extends ListFragment {
         queue= Volley.newRequestQueue(getContext());
         View v = inflater.inflate(R.layout.fragment_food_page,container,false);
         listView=(ListView)v.findViewById(android.R.id.list);
+
+        sp = getActivity().getSharedPreferences("memberdata",Context.MODE_PRIVATE);
+        editor = sp.edit();
+        issignin = sp.getBoolean("signin",false);
+        memberid = sp.getString("memberid","1");
+        memberemail = sp.getString("memberemail","xxx");
         new attrHttpasync().execute();
         return v;
     }
@@ -156,14 +168,13 @@ public class FoodPage extends ListFragment {
             holder.addbtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (ismember==true){
+                    if (issignin==true){
                         reslut = data.get(position);
-                        addFavorite(HomePageActivity.userID,reslut.getAid());
+                        addFavorite(memberid,reslut.getAid());
                         showAletDialog();
                     }else {
                         Intent intent = new Intent(getActivity(),LoginActivity.class);
                         startActivity(intent);
-                        ismember=true;
                     }
                 }
             });
@@ -215,31 +226,7 @@ public class FoodPage extends ListFragment {
         public Button mesbtn;
         public Button addbtn;
     }
-//     //* @param mail        信箱 test123@gmail.com
-//     //* @param password    密碼 test123
-//
-//    private void sighin(String mail,String password){
-//        final String p1=mail="test123@gmail.com";
-//        final String p2=password="test123";
-//        String url ="http://36.235.38.228:8080/fsit04/sighin.jsp";
-//        StringRequest stringRequest = new StringRequest(Request.Method.POST, url,
-//                new Response.Listener<String>() {
-//                    @Override
-//                    public void onResponse(String response) {
-//                        Log.v("chad",response);
-//                    }
-//                }, null){
-//            @Override
-//            protected Map<String, String> getParams() throws AuthFailureError {
-//                HashMap<String,String> m1 =new HashMap<>();
-//                m1.put("mail",p1);
-//                m1.put("password", p2);
-//                return m1;
-//            }
-//        };
-//
-//        queue.add(stringRequest);
-//    }
+
 
     private void addFavorite(String user_id,String total_id){
         String url = HomePageActivity.urlIP + "/fsit04/User_favorite";
